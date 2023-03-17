@@ -17,6 +17,7 @@ import {
 import { List } from "react-virtualized";
 
 function App() {
+  const vehiclesPerPage = 10;
   let vehiclesArray = []
   let manufacturerArray = []
   let vehicleFrequency = {}
@@ -25,6 +26,7 @@ function App() {
   // let filteredVehicles = []
   // let manufacturerSet = []
   const [filteredVehicles, setFilteredVehicles] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
   const [age, setAge] = useState(25)
   const [showUserDetails, setShowUserDetails] = useState(false)
   const [filteredUsers, setFilteredUsers] = useState(null)
@@ -33,7 +35,10 @@ function App() {
   const [maker, setMaker] = useState('')
   const [vehicleValues, setVehicleValues] = useState()
   const [vehicleAgeValues, setVehicleAgeValues] = useState()
-
+  let firstVehicleIndex = 0
+  let lastVehicleIndex = 10
+  const [vehicleSet, setVehicleSet] = useState()
+  const [slicedVehicles, setSlicedVehicles] = useState()
   useEffect(() => {
     USERS.forEach((user) => {
       const { vehicle } = user;
@@ -46,6 +51,18 @@ function App() {
     setMaker(Array.from(temp)[0])
   }, [])
 
+  useEffect(() => {
+    lastVehicleIndex = currentPage * vehiclesPerPage
+    firstVehicleIndex = lastVehicleIndex - vehiclesPerPage
+    let vehicleArray = []
+    USERS.forEach((user) => {
+      vehicleArray.push(user.vehicle.manufacturer + " " + user.vehicle.model)
+    })
+    const temp = Array.from(new Set(vehicleArray))
+    setVehicleSet(temp)
+    setSlicedVehicles(temp.slice(firstVehicleIndex, lastVehicleIndex))
+  }, [currentPage])
+
   const getPieData = () => {
     const filteredByAge = USERS.filter((user) =>
       user.age <= age && user.age > age - 5
@@ -55,7 +72,6 @@ function App() {
     filterByCarMaker.forEach(user => temp.push(user.vehicle))
     setFilteredVehicles(temp)
     setFilteredUsers(filterByCarMaker)
-
 
     temp.forEach((vehicle) => {
       if (!vehicleFrequency[vehicle.model]) vehicleFrequency[vehicle.model] = 1;
@@ -80,6 +96,7 @@ function App() {
     setVehicleAgeValues(vehicleAgeData)
 
   }
+
 
   return (
     <>
@@ -209,6 +226,24 @@ function App() {
               </PieChart>
             </ResponsiveContainer>
           </div>}
+          <div className="pagination">
+            <h1>All Unique Cars:</h1>
+            {
+              slicedVehicles &&
+              <div style={{ height: '60vh' }}>
+                {
+                  slicedVehicles.map((vehicle) => {
+                    return <h6>{vehicle}</h6>
+                  })
+                }
+              </div>}
+            <div style={{ display: 'flex' }}>
+
+              <span style={{ margin: '5px', cursor: 'pointer', color: '#00ffff' }} onClick={() => { setCurrentPage(currentPage - 1) }}>previous</span>
+              <span style={{ margin: '5px', color: '#00ffff' }}>{currentPage}</span>
+              <span style={{ margin: '5px', cursor: 'pointer', color: '#00ffff' }} onClick={() => { setCurrentPage(currentPage + 1) }}>next</span>
+            </div>
+          </div>
         </div>
       </div>
     </>
